@@ -144,20 +144,77 @@
             animation-duration: 1.5s;
         }
 
-        /* Play hint */
-        .play-hint {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 1rem;
+        /* Play overlay on avatar */
+        .avatar-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             opacity: 0;
-            animation: fade-up 1s ease 2.5s forwards;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s, transform 0.3s, background 0.3s;
+            pointer-events: none;
         }
 
-        .play-hint.hidden { opacity: 0 !important; }
+        .avatar-play svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+            margin-left: 2px; /* optical center for play triangle */
+        }
+
+        .avatar-wrapper:hover .avatar-play,
+        .avatar-wrapper .avatar-play.show-mobile {
+            opacity: 1;
+        }
+
+        .avatar-wrapper:hover .avatar-play:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Sound bars when playing */
+        .avatar-bars {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 40px;
+        }
+
+        .avatar-wrapper.playing .avatar-play { display: none; }
+        .avatar-wrapper.playing .avatar-bars { display: flex; }
+
+        .avatar-bars .bar {
+            width: 3px;
+            background: white;
+            border-radius: 2px;
+            animation: sound-bar 0.8s ease-in-out infinite alternate;
+        }
+        .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .bar:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+        .bar:nth-child(3) { height: 22px; animation-delay: 0.3s; }
+        .bar:nth-child(4) { height: 16px; animation-delay: 0.45s; }
+        .bar:nth-child(5) { height: 8px; animation-delay: 0.6s; }
+
+        @keyframes sound-bar {
+            0% { transform: scaleY(0.4); }
+            100% { transform: scaleY(1); }
+        }
 
         .hero h1 {
             font-size: clamp(3.5rem, 10vw, 7rem);
@@ -462,10 +519,15 @@
         <div class="avatar">
             <img src="samantha_avatar.png" alt="Samantha">
         </div>
+        <div class="avatar-play" id="avatarPlay">
+            <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
+        </div>
+        <div class="avatar-bars">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
     </div>
     <h1>Samantha</h1>
     <p class="subtitle">A Letter to My Future Self</p>
-    <p class="play-hint" id="playHint">▶ tap to hear my voice</p>
     <audio id="greeting" preload="auto" src="greeting.mp3"></audio>
     <div class="scroll-hint"><div class="arrow"></div></div>
 </section>
@@ -707,18 +769,19 @@ window.addEventListener('load', () => {
 // ===== VOICE GREETING =====
 const avatarWrapper = document.querySelector('.avatar-wrapper');
 const greeting = document.getElementById('greeting');
-const playHint = document.getElementById('playHint');
-let hasPlayed = false;
+const avatarPlayBtn = document.getElementById('avatarPlay');
+
+// On mobile, show play icon after delay (no hover)
+const isTouchDevice = 'ontouchstart' in window;
+if (isTouchDevice) {
+    setTimeout(() => avatarPlayBtn.classList.add('show-mobile'), 2500);
+}
 
 avatarWrapper.addEventListener('click', () => {
     if (greeting.paused) {
         greeting.currentTime = 0;
         greeting.play().then(() => {
             avatarWrapper.classList.add('playing');
-            if (!hasPlayed) {
-                playHint.classList.add('hidden');
-                hasPlayed = true;
-            }
         }).catch(() => {});
     } else {
         greeting.pause();
