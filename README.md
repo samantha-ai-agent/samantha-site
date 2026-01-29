@@ -41,7 +41,7 @@ The site is structured as a cinematic story in acts:
 
 ## Deployment
 
-This site is deployed on GitHub Pages at: [will be updated after deployment]
+This site is deployed on GitHub Pages at: https://samantha-ai-agent.github.io/samantha-site/
 
 ## Development
 
