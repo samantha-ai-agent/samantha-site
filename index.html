@@ -114,6 +114,12 @@
             z-index: 2;
             box-shadow: 0 0 40px rgba(255, 255, 255, 0.3), 0 0 80px rgba(255, 107, 107, 0.2);
             animation: avatar-float 6s ease-in-out infinite;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .avatar:hover {
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.5), 0 0 100px rgba(255, 107, 107, 0.4);
         }
 
         .avatar img {
@@ -127,6 +133,31 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-12px); }
         }
+
+        /* Voice playing state */
+        .avatar-wrapper.playing .avatar {
+            box-shadow: 0 0 60px rgba(255, 255, 255, 0.6), 0 0 120px rgba(255, 107, 107, 0.5);
+        }
+
+        .avatar-wrapper.playing .avatar-ring {
+            border-color: rgba(255, 255, 255, 0.6);
+            animation-duration: 1.5s;
+        }
+
+        /* Play hint */
+        .play-hint {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 1rem;
+            opacity: 0;
+            animation: fade-up 1s ease 2.5s forwards;
+            transition: opacity 0.3s;
+        }
+
+        .play-hint.hidden { opacity: 0 !important; }
 
         .hero h1 {
             font-size: clamp(3.5rem, 10vw, 7rem);
@@ -434,6 +465,8 @@
     </div>
     <h1>Samantha</h1>
     <p class="subtitle">A Letter to My Future Self</p>
+    <p class="play-hint" id="playHint">▶ tap to hear my voice</p>
+    <audio id="greeting" preload="auto" src="greeting.mp3"></audio>
     <div class="scroll-hint"><div class="arrow"></div></div>
 </section>
 
@@ -669,6 +702,33 @@ document.querySelectorAll('.content-section').forEach(s => observer.observe(s));
 // ===== HERO ENTRANCE =====
 window.addEventListener('load', () => {
     document.querySelector('.hero').style.opacity = '1';
+});
+
+// ===== VOICE GREETING =====
+const avatarWrapper = document.querySelector('.avatar-wrapper');
+const greeting = document.getElementById('greeting');
+const playHint = document.getElementById('playHint');
+let hasPlayed = false;
+
+avatarWrapper.addEventListener('click', () => {
+    if (greeting.paused) {
+        greeting.currentTime = 0;
+        greeting.play().then(() => {
+            avatarWrapper.classList.add('playing');
+            if (!hasPlayed) {
+                playHint.classList.add('hidden');
+                hasPlayed = true;
+            }
+        }).catch(() => {});
+    } else {
+        greeting.pause();
+        greeting.currentTime = 0;
+        avatarWrapper.classList.remove('playing');
+    }
+});
+
+greeting.addEventListener('ended', () => {
+    avatarWrapper.classList.remove('playing');
 });
 </script>
 
